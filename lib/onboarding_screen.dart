@@ -1,7 +1,7 @@
 import 'package:driver/create_account.dart';
 import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-import 'package:driver/components.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class BoardingModel {
   final String image;
@@ -46,13 +46,40 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
   bool isLast = false;
 
   @override
+  void initState() {
+    boardController = PageController(initialPage: 0);
+    super.initState();
+  }
+
+  void navigateAndFinish(context, widget) => Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => widget),
+      (Route<dynamic> route) => false);
+
+  @override
+  void dispose() {
+    boardController.dispose();
+    super.dispose();
+  }
+
+  _storeOnboardInfo() async {
+    print("Shared pref called");
+    int isViewed = 0;
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('onBoard', isViewed);
+    print(prefs.getInt('onBoard'));
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         actions: [
           TextButton(
               onPressed: () {
-                navigateAndFinish(context, const CreateAccount());
+                _storeOnboardInfo();
+                navigateAndFinish(context,
+                    const CreateAccount()); //ضع الصفحة اللي هتفتح بعد الاونبورد مكان الكريت
               },
               child: const Text(
                 'تخطي',
@@ -109,7 +136,8 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
                 FloatingActionButton(
                   onPressed: () {
                     if (isLast) {
-                      navigateAndFinish(context, const CreateAccount());
+                      navigateAndFinish(context,
+                          const CreateAccount()); //ضع الصفحة اللي هتفتح بعد الاونبورد مكان الكريت
                     } else {
                       boardController.nextPage(
                           duration: const Duration(microseconds: 750),
